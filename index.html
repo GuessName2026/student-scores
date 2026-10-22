@@ -107,6 +107,11 @@ button.icon { padding: 6px 10px; min-width: 36px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--sunken); color: var(--muted); font-variant-numeric: tabular-nums; }
 .chip.ok { color: var(--ok); }
 .chip.warn { color: var(--warn); }
+.grades { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.grade { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.grade .who { font-family: var(--display); font-weight: 800; color: var(--ink); white-space: nowrap; }
+.grade .who small { display: block; font-family: var(--body); font-weight: 400; font-size: 11.5px; color: var(--muted); direction: rtl; }
+.grade input { font-family: var(--display); font-size: 20px; font-weight: 800; text-align: center; direction: ltr; padding: 6px; font-variant-numeric: tabular-nums; }
 .empty { text-align: center; color: var(--muted); padding: 10px; font-size: 14px; }
 details.more summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 details.more[open] summary { margin-bottom: 10px; }
@@ -180,7 +185,10 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
 
       <section class="step" aria-labelledby="s3">
         <h2 id="s3"><span class="n">٣</span>الدرجات بعد الامتحان</h2>
-        <p class="hint">اكتبها في خانة «الدرجة» عند كل طالب، أو ارفع ملف إكسل فيه عمودين: رقم الطالب ودرجته (1 | 90، 2 | 98). رقم الطالب هو ترتيبه في التصوير. إذا الملف فيه عمود واحد بس، تنوزع الدرجات بالترتيب.</p>
+        <p class="hint">اكتب درجة كل طالب هنا. رقم الطالب هو ترتيبه في التصوير، وتقدر تكتب الدرجات حتى قبل ما تصوّر.</p>
+        <div id="grades" class="grades"></div>
+        <div class="row"><button id="addRow" type="button">زيد طالب</button></div>
+        <p class="hint">أو ارفع ملف إكسل فيه عمودين: رقم الطالب ودرجته (1 | 90، 2 | 98). إذا الملف فيه عمود واحد بس، تنوزع الدرجات بالترتيب.</p>
         <div class="drop">
           <strong>ارفع ملف الدرجات (Excel أو CSV)</strong>
           <input id="sheet" type="file" accept=".xlsx,.xls,.csv,text/csv" aria-label="رفع ملف الدرجات">
@@ -352,6 +360,12 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
   function applyScores() {
     state.students.forEach((s, i) => { const v = state.scoresByNo[i + 1]; if (v != null && !s.score) s.score = String(v); });
   }
+  // after a reorder or delete, scores travel with the student, so rebuild the number→score map from the list
+  function syncScoreMap() {
+    const extra = {}; for (const [k, v] of Object.entries(state.scoresByNo)) if (+k > state.students.length) extra[k] = v;
+    state.scoresByNo = extra;
+    state.students.forEach((s, i) => { if (s.score) state.scoresByNo[i + 1] = s.score; });
+  }
   async function addStudent(blob, name, mark = null, pred = "") {
     const id = newId();
     await putClip(id, blob);
@@ -364,6 +378,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     for (const f of vids) await addStudent(f, f.name);
   }
   function renderList() {
+    renderGrades();
     const list = $("list");
     if (!state.students.length) { list.innerHTML = '<div class="empty">ما فيه طلاب للحين. شغّل الكاميرا وصوّر أول طالب.</div>'; return; }
     list.innerHTML = "";
@@ -382,7 +397,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
           </div>
           <div class="nums">
             <label class="f">التوقع<input type="text" inputmode="decimal" data-k="pred" placeholder="مثلاً 90"></label>
-            <label class="f">الدرجة<input type="text" inputmode="decimal" data-k="score" placeholder="بعد الامتحان"></label>
+            <label class="f">الدرجة<input type="text" inputmode="decimal" data-k="score" id="card-score-${i + 1}" placeholder="بعد الامتحان"></label>
           </div>
           <div class="row" style="gap:6px">
             <span class="chip" data-r="mark"></span>
@@ -405,20 +420,54 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
         else { chip.className = "chip ok"; chip.textContent = `التوقع يطلع عند ${fmtT(s.mark)}`; }
       };
       paintChip();
-      card.addEventListener("input", (e) => { const k = e.target.dataset.k; if (k) { s[k] = e.target.value.trim(); renderChecks(); saveMeta(); } });
+      card.addEventListener("input", (e) => {
+        const k = e.target.dataset.k; if (!k) return;
+        if (k === "score") return setScore(i + 1, e.target.value.trim(), "card");
+        s[k] = e.target.value.trim(); renderChecks(); saveMeta();
+        const g = $(`g-${i + 1}`)?.parentElement?.querySelector("small"); if (g) g.textContent = s.pred ? `توقّع ${s.pred}` : "ما توقع للحين";
+      });
       card.addEventListener("click", (e) => {
         const a = e.target.closest("[data-a]")?.dataset.a; if (!a || running) return;
         if (a === "mark") { s.mark = v.currentTime; v.pause(); paintChip(); renderChecks(); saveMeta(); }
         if (a === "earlier" || a === "later") { s.mark = Math.max(0, (s.mark ?? v.currentTime) + (a === "later" ? 0.25 : -0.25)); v.currentTime = s.mark; paintChip(); renderChecks(); saveMeta(); }
-        if (a === "up" || a === "down") { const j = a === "up" ? i - 1 : i + 1; [state.students[i], state.students[j]] = [state.students[j], state.students[i]]; renderList(); renderChecks(); updateRecBtn(); saveMeta(); }
+        if (a === "up" || a === "down") { const j = a === "up" ? i - 1 : i + 1; [state.students[i], state.students[j]] = [state.students[j], state.students[i]]; syncScoreMap(); renderList(); renderChecks(); updateRecBtn(); saveMeta(); }
         if (a === "del") card.querySelector('[data-r="delask"]').hidden = false;
         if (a === "delno") card.querySelector('[data-r="delask"]').hidden = true;
-        if (a === "delyes") { URL.revokeObjectURL(s.url); delClip(s.id); state.students.splice(i, 1); renderList(); renderChecks(); updateRecBtn(); saveMeta(); drawIdle(); }
+        if (a === "delyes") { URL.revokeObjectURL(s.url); delClip(s.id); state.students.splice(i, 1); syncScoreMap(); renderList(); renderChecks(); updateRecBtn(); saveMeta(); drawIdle(); }
         if (a === "preview") { v.pause(); runShow({ only: i, record: false }); }
       });
       list.appendChild(card);
     });
   }
+  let extraRows = 0;
+  function renderGrades() {
+    const box = $("grades");
+    const maxKey = Math.max(0, ...Object.keys(state.scoresByNo).map(Number).filter(n => n > 0));
+    const n = Math.max(state.students.length, maxKey) + extraRows || 1;
+    const focused = document.activeElement?.id;
+    box.innerHTML = "";
+    for (let k = 1; k <= n; k++) {
+      const s = state.students[k - 1];
+      const row = document.createElement("label"); row.className = "grade"; row.htmlFor = `g-${k}`;
+      row.innerHTML = `<span class="who">الطالب ${arNum(k)}<small></small></span><input type="text" inputmode="decimal" id="g-${k}" placeholder="الدرجة">`;
+      row.querySelector("small").textContent = s ? (s.pred ? `توقّع ${s.pred}` : "ما توقع للحين") : "ما تصوّر للحين";
+      const inp = row.querySelector("input");
+      inp.value = s ? s.score : (state.scoresByNo[k] ?? "");
+      inp.addEventListener("input", () => setScore(k, inp.value.trim(), "grid"));
+      box.appendChild(row);
+    }
+    if (focused && $(focused)) $(focused).focus();
+  }
+  function setScore(k, val, from) {
+    if (val) state.scoresByNo[k] = val; else delete state.scoresByNo[k];
+    const s = state.students[k - 1];
+    if (s) s.score = val;
+    if (from !== "grid" && $(`g-${k}`)) $(`g-${k}`).value = val;
+    if (from !== "card") { const c = $(`card-score-${k}`); if (c) c.value = val; }
+    renderChecks(); saveMeta();
+  }
+  $("addRow").addEventListener("click", () => { extraRows++; renderGrades(); const last = $("grades").lastElementChild?.querySelector("input"); last?.focus(); });
+
   function renderChecks() {
     const ul = $("checks"); ul.innerHTML = "";
     if (!state.students.length) return;
@@ -437,7 +486,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
   $("wipeNo").addEventListener("click", () => { $("wipeAsk").hidden = true; });
   $("wipeYes").addEventListener("click", async () => {
     for (const s of state.students) { URL.revokeObjectURL(s.url); await delClip(s.id); }
-    state.students = []; state.scoresByNo = {}; $("wipeAsk").hidden = true;
+    state.students = []; state.scoresByNo = {}; extraRows = 0; $("wipeAsk").hidden = true;
     renderList(); renderChecks(); updateRecBtn(); saveMeta(); drawIdle(); setStatus("انمسح كل الطلاب.");
   });
 
@@ -547,7 +596,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
       numRows.forEach((r, i) => { if (paired && r.length >= 2) map[Math.round(r[0])] = r[1]; else if (!paired) map[i + 1] = r[0]; });
       state.scoresByNo = map;
       state.students.forEach((s, i) => { if (map[i + 1] != null) s.score = String(map[i + 1]); });
-      renderList(); renderChecks(); saveMeta();
+      syncScoreMap(); renderList(); renderChecks(); saveMeta();
       const n = Object.keys(map).length;
       msg.textContent = `قريت ${arNum(n)} درجات ${paired ? "حسب رقم الطالب" : "بالترتيب"}.`;
     } catch (err) {
@@ -768,6 +817,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
 
   document.fonts.load(`800 100px "Baloo Bhaijaan 2"`).then(drawIdle, drawIdle);
   drawIdle();
+  renderGrades();
   restore();
 })();
 </script>
