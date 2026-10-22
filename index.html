@@ -7,7 +7,7 @@
 <meta name="description" content="صوّر الطلاب وهم يقولون توقعهم، والموقع يطلع الرقم تلقائي ويجمد الصورة ويعرض الدرجة الحقيقية في فيديو واحد.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Lalezar&family=Cairo:wght@800&family=Tajawal:wght@800&family=Changa:wght@800&family=Almarai:wght@800&family=Lemonada:wght@700&family=Reem+Kufi:wght@700&family=El+Messiri:wght@700&family=Rakkas&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
 <style>
 /* Layout: a working desk. Steps run down the start side, the 9:16 monitor stays pinned on the end side; on phones they stack. */
 :root {
@@ -112,6 +112,13 @@ button.icon { padding: 6px 10px; min-width: 36px; }
 .grade .who { font-family: var(--display); font-weight: 800; color: var(--ink); white-space: nowrap; }
 .grade .who small { display: block; font-family: var(--body); font-weight: 400; font-size: 11.5px; color: var(--muted); direction: rtl; }
 .grade input { font-family: var(--display); font-size: 20px; font-weight: 800; text-align: center; direction: ltr; padding: 6px; font-variant-numeric: tabular-nums; }
+.rules { display: grid; gap: 8px; font-size: 14px; }
+.rules input { width: 3.6em; text-align: center; padding: 4px; font-weight: 600; direction: ltr; margin-inline: 4px; }
+.legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 13px; color: var(--muted); }
+.legend b.g { color: var(--ok); } .legend b.r { color: #d23b3b; }
+.fontpick { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.fontpick select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.fontsample { font-size: 30px; color: #f3c98b; -webkit-text-stroke: 5px #3e3a7a; paint-order: stroke fill; line-height: 1.3; }
 .empty { text-align: center; color: var(--muted); padding: 10px; font-size: 14px; }
 details.more summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 details.more[open] summary { margin-bottom: 10px; }
@@ -199,9 +206,34 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
       <section class="step" aria-labelledby="s4">
         <h2 id="s4"><span class="n">٤</span>الإعدادات</h2>
         <div class="toggles">
-          <label><input type="checkbox" id="sfx" checked> أصوات التوقع والدرجة</label>
-          <label><input type="checkbox" id="colorize"> لوّن الدرجة (أخضر إذا جاب توقعه أو أكثر)</label>
+          <label><input type="checkbox" id="sfx" checked> الأصوات</label>
+          <label><input type="checkbox" id="colors" checked> لوّن الأرقام: أخضر إذا التوقع صح، أحمر إذا غلط</label>
           <label><input type="checkbox" id="intro" checked> مقدمة السؤال (٣ ثواني)</label>
+        </div>
+        <div class="rules">
+          <label for="tol">التوقع يعتبر صح إذا الفرق بينه وبين الدرجة <input type="text" inputmode="numeric" id="tol" value="2"> درجات أو أقل</label>
+          <label for="big">تصفيق إذا جاب أكثر من توقعه بـ <input type="text" inputmode="numeric" id="big" value="10"> درجات أو أكثر</label>
+        </div>
+        <ul class="legend">
+          <li><b class="g">أخضر</b> مع صوت فوز: التوقع صح، أو جاب أكثر من توقعه</li>
+          <li><b class="g">أخضر</b> مع تصفيق: جاب أكثر من توقعه بكثير</li>
+          <li><b class="r">أحمر</b> مع صوت خسارة: جاب أقل من توقعه</li>
+        </ul>
+        <div class="fontpick">
+          <label class="f" for="font">نوع الخط</label>
+          <select id="font">
+            <option value="Baloo Bhaijaan 2" data-w="800" style="font-family:'Baloo Bhaijaan 2'">دائري (مثل المثال)</option>
+            <option value="Lalezar" data-w="400" style="font-family:'Lalezar'">عريض</option>
+            <option value="Cairo" data-w="800" style="font-family:'Cairo'">القاهرة</option>
+            <option value="Tajawal" data-w="800" style="font-family:'Tajawal'">تجوّل</option>
+            <option value="Changa" data-w="800" style="font-family:'Changa'">شنقا</option>
+            <option value="Almarai" data-w="800" style="font-family:'Almarai'">المراعي</option>
+            <option value="Lemonada" data-w="700" style="font-family:'Lemonada'">ليموناضة</option>
+            <option value="Reem Kufi" data-w="700" style="font-family:'Reem Kufi'">ريم كوفي</option>
+            <option value="El Messiri" data-w="700" style="font-family:'El Messiri'">المسيري</option>
+            <option value="Rakkas" data-w="400" style="font-family:'Rakkas'">رقاص</option>
+          </select>
+          <span id="fontSample" class="fontsample">كم تتوقع نسبتك؟</span>
         </div>
         <div class="row">
           <button id="wipe" type="button">امسح كل الطلاب</button>
@@ -238,8 +270,11 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
 <script>
 (() => {
   const W = 1080, H = 1920;
-  const INK = "#3e3a7a", SAND = "#f3c98b", WHITE = "#ffffff", GOOD = "#8be08f", LOW = "#ff9a86";
-  const FONT = '"Baloo Bhaijaan 2", "IBM Plex Sans Arabic", sans-serif';
+  const INK = "#3e3a7a", SAND = "#f3c98b", WHITE = "#ffffff", GOOD = "#5fe07a", LOW = "#ff4d4d";
+  const fontName = () => $("font").value || "Baloo Bhaijaan 2";
+  const fontW = () => $("font").selectedOptions[0]?.dataset.w || "800";
+  const font = (size, w) => `${w || fontW()} ${size}px "${fontName()}", "IBM Plex Sans Arabic", sans-serif`;
+  const loadFont = () => document.fonts.load(font(100)).catch(() => {});
   const FREEZE_AFTER = 0.7, SCORE_AFTER = 0.9, HOLD = 2.8, INTRO = 3.0, AUTO_STOP_AFTER = 2.0;
 
   const $ = (id) => document.getElementById(id);
@@ -335,7 +370,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     saveT = setTimeout(() => tx("meta", "readwrite", s => s.put({
       title: $("title").value,
       scoresByNo: state.scoresByNo,
-      opts: { sfx: $("sfx").checked, colorize: $("colorize").checked, intro: $("intro").checked, autoStop: $("autoStop").checked },
+      opts: { sfx: $("sfx").checked, colors: $("colors").checked, intro: $("intro").checked, autoStop: $("autoStop").checked, tol: $("tol").value, big: $("big").value, font: $("font").value },
       students: state.students.map(({ id, name, mark, pred, score }) => ({ id, name, mark, pred, score })),
     }, "state")), 250);
   }
@@ -345,7 +380,9 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     if (!m) return;
     if (m.title) $("title").value = m.title;
     state.scoresByNo = m.scoresByNo || {};
-    for (const k of ["sfx", "colorize", "intro", "autoStop"]) if (m.opts && k in m.opts) $(k).checked = m.opts[k];
+    for (const k of ["sfx", "colors", "intro", "autoStop"]) if (m.opts && k in m.opts) $(k).checked = m.opts[k];
+    for (const k of ["tol", "big", "font"]) if (m.opts && m.opts[k]) $(k).value = m.opts[k];
+    paintFont();
     for (const s of m.students || []) {
       const blob = await getClip(s.id);
       if (blob) state.students.push({ ...s, url: URL.createObjectURL(blob) });
@@ -354,7 +391,10 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     if (state.students.length) setStatus(`رجّعت ${arNum(state.students.length)} طلاب محفوظين من قبل.`);
   }
   ["title"].forEach(id => $(id).addEventListener("input", saveMeta));
-  ["sfx", "colorize", "intro", "autoStop"].forEach(id => $(id).addEventListener("change", saveMeta));
+  ["sfx", "colors", "intro", "autoStop", "font"].forEach(id => $(id).addEventListener("change", saveMeta));
+  ["tol", "big"].forEach(id => $(id).addEventListener("input", saveMeta));
+  function paintFont() { $("fontSample").style.fontFamily = `"${fontName()}", "IBM Plex Sans Arabic", sans-serif`; $("fontSample").style.fontWeight = fontW(); loadFont().then(drawIdle); }
+  $("font").addEventListener("change", paintFont);
 
   // ---------- student list ----------
   function applyScores() {
@@ -613,7 +653,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
   }
   function outlined(text, x, y, size, fill, dir = "rtl") {
     ctx.save();
-    ctx.font = `800 ${size}px ${FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = dir;
+    ctx.font = font(size); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = dir;
     ctx.lineJoin = "round"; ctx.lineWidth = size * 0.17; ctx.strokeStyle = INK;
     ctx.shadowColor = "rgba(20,15,50,.35)"; ctx.shadowBlur = size * 0.12; ctx.shadowOffsetY = size * 0.04;
     ctx.strokeText(text, x, y); ctx.shadowColor = "transparent";
@@ -628,15 +668,28 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     outlined(text, 0, 0, size, fill, "ltr"); ctx.restore();
   }
   const LBL_Y = H * 0.155, NUM_Y = H * 0.225, PRED_X = W * 0.70, SCORE_X = W * 0.31;
+  // right: within the tolerance (or "+96" and reached it) · above: beat the prediction · wow: beat it by a lot · below: under it
+  function verdict(pred, score) {
+    const p = numOf(pred), g = numOf(score);
+    if (isNaN(p) || isNaN(g)) return null;
+    const tol = Math.max(0, numOf($("tol").value) || 0), big = Math.max(1, numOf($("big").value) || 10);
+    const atLeast = /\+/.test(toLatin(pred)) || /(فوق|اكثر|أكثر)/.test(pred);
+    const d = g - p;
+    if (d >= big) return "wow";
+    if (Math.abs(d) <= tol || (atLeast && d >= 0)) return "right";
+    return d > 0 ? "above" : "below";
+  }
   function drawOverlay(sc) {
     outlined("التوقع:", PRED_X, LBL_Y, 104, SAND);
     outlined("الدرجة:", SCORE_X, LBL_Y, 104, SAND);
-    if (sc.predAt) popped(toLatin(sc.pred), PRED_X, NUM_Y, 136, WHITE, sc.predAt);
-    if (sc.scoreAt) {
-      let fill = WHITE;
-      if ($("colorize").checked) { const p = numOf(sc.pred), g = numOf(sc.score); if (!isNaN(p) && !isNaN(g)) fill = g >= p ? GOOD : LOW; }
-      popped(toLatin(sc.score), SCORE_X, NUM_Y, 136, fill, sc.scoreAt);
+    let fill = WHITE;
+    if (sc.scoreAt && sc.verdict && $("colors").checked) fill = sc.verdict === "below" ? LOW : GOOD;
+    if (sc.predAt) {
+      // the prediction recolours together with the score reveal
+      if (sc.scoreAt && fill !== WHITE) outlined(toLatin(sc.pred), PRED_X, NUM_Y, 136, fill, "ltr");
+      else popped(toLatin(sc.pred), PRED_X, NUM_Y, 136, WHITE, sc.predAt);
     }
+    if (sc.scoreAt) popped(toLatin(sc.score), SCORE_X, NUM_Y, 136, fill, sc.scoreAt);
   }
   function drawTitle(text, since) {
     const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
@@ -677,7 +730,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     outlined("الدرجة:", SCORE_X, LBL_Y, 104, SAND);
     outlined("90", PRED_X, NUM_Y, 136, WHITE, "ltr");
     outlined("95", SCORE_X, NUM_Y, 136, WHITE, "ltr");
-    ctx.save(); ctx.font = `600 44px ${FONT}`; ctx.fillStyle = "rgba(30,25,70,.7)"; ctx.textAlign = "center"; ctx.direction = "rtl";
+    ctx.save(); ctx.font = font(44, 400); ctx.fillStyle = "rgba(30,25,70,.7)"; ctx.textAlign = "center"; ctx.direction = "rtl";
     ctx.fillText("مثال على الإطار", W / 2, H * 0.32); ctx.restore();
   }
 
@@ -705,7 +758,44 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
   }
   const sfxPred = () => tone([[520, 0], [780, 0.07]], 0.22, "triangle", 0.4);
   const sfxFreeze = () => tone([[180, 0]], 0.18, "square", 0.12);
-  const sfxScore = () => tone([[660, 0], [880, 0.1], [1320, 0.2]], 0.5, "sine", 0.35);
+  const sfxRight = () => { tone([[523, 0], [659, 0.1], [784, 0.2], [1047, 0.3]], 0.45, "triangle", 0.35); tone([[1568, 0.42], [2093, 0.5]], 0.5, "sine", 0.18); };
+  const sfxAbove = () => tone([[660, 0], [880, 0.1], [1320, 0.2]], 0.5, "sine", 0.35);
+  function sfxBelow() { // descending "wah wah wah waaah"
+    if (!ac || !$("sfx").checked) return;
+    const t0 = ac.currentTime, lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900;
+    lp.connect(dest); lp.connect(ac.destination);
+    [[392, 0, 0.32], [370, 0.36, 0.32], [349, 0.72, 0.32], [330, 1.08, 0.9]].forEach(([f, at, len], i) => {
+      const o = ac.createOscillator(), g = ac.createGain(), vib = ac.createOscillator(), vg = ac.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(f, t0 + at);
+      if (i === 3) { vib.frequency.value = 5.5; vg.gain.value = 9; vib.connect(vg); vg.connect(o.frequency); vib.start(t0 + at); vib.stop(t0 + at + len); o.frequency.linearRampToValueAtTime(f * 0.94, t0 + at + len); }
+      g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(0.22, t0 + at + 0.04);
+      g.gain.setValueAtTime(0.22, t0 + at + len - 0.08); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + len);
+      o.connect(g); g.connect(lp); o.start(t0 + at); o.stop(t0 + at + len + 0.02);
+    });
+  }
+  let applauseBuf = null;
+  function sfxWow() {
+    if (!ac || !$("sfx").checked) return;
+    tone([[523, 0], [659, 0.12], [784, 0.24], [1047, 0.36], [1319, 0.48]], 0.6, "triangle", 0.3);
+    if (!applauseBuf) { // many short noise bursts that swell and fade
+      const sr = ac.sampleRate, len = Math.floor(sr * 3.4), buf = ac.createBuffer(2, len, sr);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = buf.getChannelData(ch);
+        for (let c = 0; c < 520; c++) {
+          const t = Math.pow(Math.random(), 0.8) * 3.2, env = t < 0.4 ? t / 0.4 : Math.max(0, 1 - (t - 0.4) / 2.8);
+          const start = Math.floor(t * sr), clapLen = Math.floor(sr * (0.012 + Math.random() * 0.02)), amp = (0.3 + Math.random() * 0.7) * env;
+          for (let k = 0; k < clapLen && start + k < len; k++) d[start + k] += (Math.random() * 2 - 1) * amp * Math.exp(-k / (clapLen / 4));
+        }
+        for (let k = 0; k < len; k++) d[k] = Math.max(-1, Math.min(1, d[k] * 0.5));
+      }
+      applauseBuf = buf;
+    }
+    const src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = applauseBuf; bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.6; g.gain.value = 0.9;
+    src.connect(bp); bp.connect(g); g.connect(dest); g.connect(ac.destination);
+    src.start(ac.currentTime + 0.15);
+  }
+  const sfxScore = (v) => (v === "wow" ? sfxWow : v === "below" ? sfxBelow : v === "right" ? sfxRight : sfxAbove)();
 
   // ---------- show engine ----------
   const frame = () => new Promise(r => requestAnimationFrame(r));
@@ -732,7 +822,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     if (running || camRec) return;
     const order = only == null ? state.students.map((s, i) => i) : [only];
     if (!order.length) { setStatus("صوّر الطلاب أول.", true); return; }
-    await document.fonts.load(`800 100px "Baloo Bhaijaan 2"`).catch(() => {});
+    await loadFont();
     ensureAudio();
     setBusy(true); stopReq = false; $("result").hidden = true;
     let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch (e) {}
@@ -774,8 +864,9 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
         await until(() => player.currentTime >= mark + FREEZE_AFTER || player.ended);
         player.pause(); scene.frozenAt = performance.now(); sfxFreeze();
         await hold(SCORE_AFTER);
-        scene.scoreAt = performance.now(); sfxScore();
-        await hold(HOLD);
+        scene.verdict = verdict(s.pred, s.score);
+        scene.scoreAt = performance.now(); sfxScore(scene.verdict);
+        await hold(scene.verdict === "wow" ? HOLD + 0.9 : HOLD);
         scene.fadeOut = performance.now(); await hold(0.26);
         done++; prog(done / total);
       }
@@ -815,7 +906,7 @@ aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px
     try { await navigator.share({ files: [file], title: "توقعات الطلاب" }); } catch (e) {}
   });
 
-  document.fonts.load(`800 100px "Baloo Bhaijaan 2"`).then(drawIdle, drawIdle);
+  loadFont().then(drawIdle);
   drawIdle();
   renderGrades();
   restore();
