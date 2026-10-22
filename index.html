@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>استوديو التوقع والدرجة</title>
+<meta name="description" content="صوّر الطلاب وهم يقولون توقعهم، والموقع يطلع الرقم تلقائي ويجمد الصورة ويعرض الدرجة الحقيقية في فيديو واحد.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: a working desk. Steps run down the start side, the 9:16 monitor stays pinned on the end side; on phones they stack. */
+:root {
+  --bg: #f5f3fa;
+  --surface: #ffffff;
+  --sunken: #ece8f5;
+  --fg: #1f1c3a;
+  --muted: #5f5a7d;
+  --line: #d9d3ea;
+  --ink: #3e3a7a;        /* the purple outline from the reference videos */
+  --sand: #f3c98b;       /* the beige label fill */
+  --accent: #5b4fc4;
+  --accent-fg: #ffffff;
+  --rec: #d23b3b;
+  --ok: #2f8a4c;
+  --warn: #b8561f;
+  --display: "Baloo Bhaijaan 2", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --body: "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14122a; --surface: #1e1b38; --sunken: #282447; --fg: #eeebf8; --muted: #aaa4c8;
+    --line: #37325c; --ink: #b9b2f2; --accent: #8f84f0; --accent-fg: #14122a; --rec: #ff6b6b;
+    --ok: #6fd08f; --warn: #f0a070; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+}
+[hidden] { display: none !important; }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 4px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1.2; margin: 0; color: var(--ink); text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 62ch; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.steps { display: grid; gap: 16px; min-width: 0; }
+section.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.step h2 { font-family: var(--display); font-weight: 800; font-size: 21px; margin: 0; display: flex; gap: 10px; align-items: center; }
+.step h2 .n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 16px; flex: none; }
+.hint { color: var(--muted); font-size: 13.5px; margin: 0; }
+label.f { display: grid; gap: 4px; font-weight: 600; font-size: 13.5px; }
+textarea, input[type=text] {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%;
+}
+textarea { min-height: 92px; resize: vertical; font-family: var(--display); font-size: 19px; line-height: 1.4; }
+textarea:focus, input:focus, button:focus-visible, .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+button, .btn {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); text-decoration: none;
+  background: var(--sunken); color: var(--fg); padding: 9px 14px; display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+}
+button.primary, .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+button.mark { background: var(--sand); color: #3e3a7a; border-color: transparent; }
+button.rec { background: var(--rec); color: #fff; border-color: transparent; font-size: 17px; padding: 12px 18px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.icon { padding: 6px 10px; min-width: 36px; }
+.drop {
+  border: 2px dashed var(--line); border-radius: 12px; padding: 16px; text-align: center; color: var(--muted);
+  display: grid; gap: 6px; justify-items: center; position: relative; background: var(--bg);
+}
+.drop strong { color: var(--fg); }
+.drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toggles { display: flex; flex-wrap: wrap; gap: 16px; }
+.toggles label { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+
+/* camera */
+.cam { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 560px) { .cam { grid-template-columns: minmax(0, 1fr); } .cam .viewfinder { max-width: 260px; justify-self: center; width: 100%; } }
+.viewfinder { position: relative; background: #0d0c1a; border-radius: 14px; overflow: hidden; aspect-ratio: 9 / 16; max-width: 100%; }
+.viewfinder video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.viewfinder .off { position: absolute; inset: 0; display: grid; place-items: center; color: #aaa4c8; font-size: 13px; text-align: center; padding: 12px; }
+.viewfinder .dot { position: absolute; top: 10px; inset-inline-start: 10px; background: var(--rec); color: #fff; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px; font-variant-numeric: tabular-nums; }
+.camctl { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.heard { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 4px; }
+.heard .lbl { font-size: 12.5px; color: var(--muted); }
+.heard .txt { min-height: 1.6em; overflow-wrap: anywhere; }
+.heard .big { font-family: var(--display); font-weight: 800; font-size: 40px; line-height: 1.1; color: var(--ink); direction: ltr; text-align: end; font-variant-numeric: tabular-nums; }
+
+.students { display: grid; gap: 12px; }
+.card { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--bg); }
+@media (max-width: 460px) { .card { grid-template-columns: minmax(0, 1fr); } .card video { max-height: 320px; justify-self: center; } }
+.card video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #000; max-width: 100%; }
+.card .body { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card .who { font-family: var(--display); font-weight: 800; font-size: 19px; color: var(--ink); }
+.card .file { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.nums { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.nums input { font-family: var(--display); font-size: 22px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; direction: ltr; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--sunken); color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip.ok { color: var(--ok); }
+.chip.warn { color: var(--warn); }
+.empty { text-align: center; color: var(--muted); padding: 10px; font-size: 14px; }
+details.more summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+details.more[open] summary { margin-bottom: 10px; }
+
+aside.monitor { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 12px; }
+.screen { background: #0d0c1a; border-radius: 18px; padding: 10px; }
+.screen canvas, .screen video { display: block; width: 100%; aspect-ratio: 9 / 16; border-radius: 10px; background: #000; max-width: 100%; }
+.status { font-size: 13.5px; color: var(--muted); min-height: 1.6em; }
+.status.err { color: var(--warn); }
+.bar { height: 6px; border-radius: 6px; background: var(--sunken); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s linear; }
+.result { display: grid; gap: 10px; }
+.checks { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13.5px; }
+.checks li::before { content: "•"; margin-inline-end: 6px; color: var(--muted); }
+.checks li.bad { color: var(--warn); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>استوديو التوقع والدرجة</h1>
+    <p>صوّر كل طالب وهو يقول توقعه، والموقع يسمع الرقم ويكتبه بروحه. بعد الامتحان حط الدرجات (أو ارفع ملف إكسل)، والموقع يطلع فيديو طولي واحد: الطالب يقول توقعه، يطلع الرقم مع صوت، تتجمد الصورة وتظهر درجته. كل شي يبقى محفوظ على جهازك ولا ينرفع لأي مكان.</p>
+  </header>
+
+  <div class="cols">
+    <div class="steps">
+      <section class="step" aria-labelledby="s1">
+        <h2 id="s1"><span class="n">١</span>سؤال البداية</h2>
+        <label class="f" for="title">يطلع في أول الفيديو فوق صورة مغبّشة. كل سطر هنا يصير سطر في الفيديو.</label>
+        <textarea id="title">كم تتوقع نسبتك
+في اختبار الرياضيات
+النهائي؟</textarea>
+      </section>
+
+      <section class="step" aria-labelledby="s2">
+        <h2 id="s2"><span class="n">٢</span>صوّر الطلاب قبل الامتحان</h2>
+        <div class="cam">
+          <div class="viewfinder">
+            <video id="live" playsinline muted autoplay></video>
+            <div id="camOff" class="off">الكاميرا مطفية</div>
+            <div id="recDot" class="dot" hidden>● 0:00</div>
+          </div>
+          <div class="camctl">
+            <div class="row">
+              <button id="camOn" type="button" class="primary">شغّل الكاميرا</button>
+              <button id="flip" type="button" hidden>قلب الكاميرا</button>
+            </div>
+            <button id="recBtn" type="button" class="rec" hidden>ابدأ تصوير الطالب ١</button>
+            <div class="heard" aria-live="polite">
+              <span class="lbl">اللي سمعته</span>
+              <span id="heardTxt" class="txt">—</span>
+              <span class="lbl">التوقع</span>
+              <span id="heardNum" class="big">—</span>
+            </div>
+            <label class="toggles"><span style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="autoStop" checked> وقّف التصوير تلقائي بعد ما يقول الرقم</span></label>
+            <p class="hint">اسأل الطالب، واضغط «ابدأ التصوير». أول ما يقول رقمه، يتسجل التوقع ولحظة ظهوره، وبعد ثانيتين يوقف التصوير. إذا الموقع ما فهم الرقم تقدر تكتبه أو تعدّله تحت.</p>
+            <p id="srWarn" class="hint" style="color:var(--warn)" hidden>هذا المتصفح ما يدعم التعرف على الكلام. استخدم Chrome على أندرويد أو الكمبيوتر، أو Safari على الآيفون. تقدر تصوّر عادي وتكتب الرقم بيدك.</p>
+          </div>
+        </div>
+        <details class="more">
+          <summary>عندك مقاطع مصوّرة من قبل؟ ارفعها</summary>
+          <div class="drop">
+            <strong>اختر المقاطع أو اسحبها هنا</strong>
+            <span class="hint">تترتب حسب اسم الملف. لكل مقطع شغّله واضغط «هنا قال توقعه» واكتب الرقم.</span>
+            <input id="clips" type="file" accept="video/*" multiple aria-label="رفع مقاطع الطلاب">
+          </div>
+        </details>
+        <div id="list" class="students"><div class="empty">ما فيه طلاب للحين. شغّل الكاميرا وصوّر أول طالب.</div></div>
+      </section>
+
+      <section class="step" aria-labelledby="s3">
+        <h2 id="s3"><span class="n">٣</span>الدرجات بعد الامتحان</h2>
+        <p class="hint">اكتبها في خانة «الدرجة» عند كل طالب، أو ارفع ملف إكسل فيه عمودين: رقم الطالب ودرجته (1 | 90، 2 | 98). رقم الطالب هو ترتيبه في التصوير. إذا الملف فيه عمود واحد بس، تنوزع الدرجات بالترتيب.</p>
+        <div class="drop">
+          <strong>ارفع ملف الدرجات (Excel أو CSV)</strong>
+          <input id="sheet" type="file" accept=".xlsx,.xls,.csv,text/csv" aria-label="رفع ملف الدرجات">
+        </div>
+        <div id="sheetMsg" class="status"></div>
+      </section>
+
+      <section class="step" aria-labelledby="s4">
+        <h2 id="s4"><span class="n">٤</span>الإعدادات</h2>
+        <div class="toggles">
+          <label><input type="checkbox" id="sfx" checked> أصوات التوقع والدرجة</label>
+          <label><input type="checkbox" id="colorize"> لوّن الدرجة (أخضر إذا جاب توقعه أو أكثر)</label>
+          <label><input type="checkbox" id="intro" checked> مقدمة السؤال (٣ ثواني)</label>
+        </div>
+        <div class="row">
+          <button id="wipe" type="button">امسح كل الطلاب</button>
+          <span id="wipeAsk" class="row" hidden><span class="hint">أكيد؟ ما ينرجعون.</span><button id="wipeYes" type="button">إيه امسح</button><button id="wipeNo" type="button">لا</button></span>
+        </div>
+      </section>
+    </div>
+
+    <aside class="monitor" aria-label="المعاينة والتصدير">
+      <div class="screen"><canvas id="cv" width="1080" height="1920" aria-label="معاينة الفيديو"></canvas></div>
+      <div class="row">
+        <button id="play" type="button">معاينة</button>
+        <button id="export" type="button" class="primary">تصدير الفيديو</button>
+        <button id="stop" type="button" hidden>إيقاف</button>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+      <div id="status" class="status" role="status">هذا شكل الإطار. صوّر الطلاب وابدأ.</div>
+      <ul id="checks" class="checks"></ul>
+      <div id="result" class="result" hidden>
+        <div class="screen"><video id="out" controls playsinline></video></div>
+        <div class="row">
+          <button id="share" type="button" class="primary" hidden>حفظ في الصور / مشاركة</button>
+          <a id="dl" class="btn" download="توقعات-الطلاب.mp4">تنزيل الملف</a>
+        </div>
+      </div>
+      <p class="hint">التصدير يشتغل بالوقت الحقيقي، يعني فيديو مدته دقيقتين ياخذ دقيقتين. خل الصفحة مفتوحة والشاشة شغالة لين يخلص.</p>
+    </aside>
+  </div>
+</div>
+
+<video id="player" playsinline preload="auto" hidden></video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(() => {
+  const W = 1080, H = 1920;
+  const INK = "#3e3a7a", SAND = "#f3c98b", WHITE = "#ffffff", GOOD = "#8be08f", LOW = "#ff9a86";
+  const FONT = '"Baloo Bhaijaan 2", "IBM Plex Sans Arabic", sans-serif';
+  const FREEZE_AFTER = 0.7, SCORE_AFTER = 0.9, HOLD = 2.8, INTRO = 3.0, AUTO_STOP_AFTER = 2.0;
+
+  const $ = (id) => document.getElementById(id);
+  const cv = $("cv"), ctx = cv.getContext("2d");
+  const player = $("player");
+  const small = document.createElement("canvas"); small.width = 54; small.height = 96;
+  const sctx = small.getContext("2d");
+
+  const state = { students: [], scoresByNo: {} };
+  let running = false, stopReq = false, lastBlob = null, lastExt = "mp4";
+
+  const toLatin = (s) => String(s ?? "").replace(/[٠-٩]/g, d => d.charCodeAt(0) - 0x660).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 0x6f0);
+  const numOf = (s) => { const m = toLatin(s).match(/\d+(\.\d+)?/); return m ? parseFloat(m[0]) : NaN; };
+  const arNum = (n) => String(n).replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
+  const fmtT = (t) => { const m = Math.floor(t / 60), s = (t % 60).toFixed(1); return `${m}:${s.padStart(4, "0")}`; };
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  // ---------- spoken Arabic numbers ----------
+  const WORDS = {
+    "صفر": 0, "واحد": 1, "وحده": 1, "اثنين": 2, "اثنان": 2, "ثنين": 2, "اثنتين": 2,
+    "ثلاث": 3, "ثلاثه": 3, "تلات": 3, "تلاته": 3, "اربع": 4, "اربعه": 4, "خمس": 5, "خمسه": 5,
+    "ست": 6, "سته": 6, "سبع": 7, "سبعه": 7, "ثمان": 8, "ثماني": 8, "ثمانيه": 8, "ثمن": 8, "تمن": 8, "تمانيه": 8, "ثمانه": 8,
+    "تسع": 9, "تسعه": 9, "عشر": 10, "عشره": 10,
+    "احدعش": 11, "حدعش": 11, "اثنعش": 12, "ثنعش": 12, "ثلطعش": 13, "تلتطعش": 13, "اربعطعش": 14, "خمسطعش": 15,
+    "سطعش": 16, "ستطعش": 16, "سبعطعش": 17, "ثمنطعش": 18, "تمنطعش": 18, "تسعطعش": 19,
+    "عشرين": 20, "عشرون": 20, "ثلاثين": 30, "تلاتين": 30, "ثلاثون": 30, "اربعين": 40, "اربعون": 40,
+    "خمسين": 50, "خمسون": 50, "ستين": 60, "ستون": 60, "سبعين": 70, "سبعون": 70,
+    "ثمانين": 80, "ثمانون": 80, "تمانين": 80, "تسعين": 90, "تسعون": 90,
+    "ميه": 100, "مئه": 100, "مائه": 100, "ميت": 100, "مية": 100,
+  };
+  const HALF = new Set(["نص", "نصف"]);
+  const MORE = new Set(["فوق", "اكثر", "اكتر", "زائد", "زايد"]);
+  const FILLER = new Set(["من", "عن", "شي", "شوي", "يعني"]);
+  const norm = (s) => toLatin(s).replace(/[ً-ْـ]/g, "").replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");
+  function wordVal(tok) {
+    if (/^\d+(\.\d+)?%?$/.test(tok)) return parseFloat(tok);
+    if (tok in WORDS) return WORDS[tok];
+    if (tok.length > 2 && tok[0] === "و" && tok.slice(1) in WORDS) return WORDS[tok.slice(1)];
+    if (tok.length > 1 && tok[0] === "و" && /^\d+$/.test(tok.slice(1))) return parseFloat(tok.slice(1));
+    const bare = tok.replace(/^و?ال/, "");
+    if (bare !== tok && bare in WORDS) return WORDS[bare];
+    return null;
+  }
+  // Returns the last score-like number said (students often correct themselves), with "+" if they said "فوق/أكثر".
+  function spokenNumber(text) {
+    const toks = norm(text).replace(/(\d)\s*%/g, "$1").split(/[\s,،.؟?!]+/).filter(Boolean);
+    const groups = []; let cur = null, more = false;
+    toks.forEach((tok, i) => {
+      const v = wordVal(tok);
+      const isHalf = HALF.has(tok) || (tok[0] === "و" && HALF.has(tok.slice(1)));
+      if (v != null) {
+        if (cur && cur.open) { cur.val += v; }
+        else { cur = { val: v, open: true, more }; groups.push(cur); }
+        more = false;
+      } else if (isHalf && cur && cur.open) { cur.val += 0.5; cur.open = false; }
+      else if (tok === "و" && cur) { /* keep group open */ }
+      else {
+        if (cur) cur.open = false;
+        if (MORE.has(tok) || MORE.has(tok.replace(/^و/, ""))) more = true;
+        else if (!FILLER.has(tok)) more = false;
+      }
+    });
+    const ok = groups.filter(g => g.val >= 0 && g.val <= 100);
+    if (!ok.length) return null;
+    const g = ok[ok.length - 1];
+    return (g.more ? "+" : "") + String(g.val);
+  }
+
+  // ---------- storage (IndexedDB, survives until the exam results) ----------
+  let idb = null;
+  function openDb() {
+    return new Promise((res) => {
+      try {
+        const r = indexedDB.open("prediction-studio", 1);
+        r.onupgradeneeded = () => { r.result.createObjectStore("clips"); r.result.createObjectStore("meta"); };
+        r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+  }
+  function tx(store, mode, fn) {
+    return new Promise((res) => {
+      if (!idb) return res(null);
+      try { const t = idb.transaction(store, mode); const req = fn(t.objectStore(store)); t.oncomplete = () => res(req?.result ?? null); t.onerror = () => res(null); }
+      catch (e) { res(null); }
+    });
+  }
+  const putClip = (id, blob) => tx("clips", "readwrite", s => s.put(blob, id));
+  const getClip = (id) => tx("clips", "readonly", s => s.get(id));
+  const delClip = (id) => tx("clips", "readwrite", s => s.delete(id));
+  let saveT = 0;
+  function saveMeta() {
+    clearTimeout(saveT);
+    saveT = setTimeout(() => tx("meta", "readwrite", s => s.put({
+      title: $("title").value,
+      scoresByNo: state.scoresByNo,
+      opts: { sfx: $("sfx").checked, colorize: $("colorize").checked, intro: $("intro").checked, autoStop: $("autoStop").checked },
+      students: state.students.map(({ id, name, mark, pred, score }) => ({ id, name, mark, pred, score })),
+    }, "state")), 250);
+  }
+  async function restore() {
+    idb = await openDb();
+    const m = await tx("meta", "readonly", s => s.get("state"));
+    if (!m) return;
+    if (m.title) $("title").value = m.title;
+    state.scoresByNo = m.scoresByNo || {};
+    for (const k of ["sfx", "colorize", "intro", "autoStop"]) if (m.opts && k in m.opts) $(k).checked = m.opts[k];
+    for (const s of m.students || []) {
+      const blob = await getClip(s.id);
+      if (blob) state.students.push({ ...s, url: URL.createObjectURL(blob) });
+    }
+    renderList(); renderChecks(); updateRecBtn();
+    if (state.students.length) setStatus(`رجّعت ${arNum(state.students.length)} طلاب محفوظين من قبل.`);
+  }
+  ["title"].forEach(id => $(id).addEventListener("input", saveMeta));
+  ["sfx", "colorize", "intro", "autoStop"].forEach(id => $(id).addEventListener("change", saveMeta));
+
+  // ---------- student list ----------
+  function applyScores() {
+    state.students.forEach((s, i) => { const v = state.scoresByNo[i + 1]; if (v != null && !s.score) s.score = String(v); });
+  }
+  async function addStudent(blob, name, mark = null, pred = "") {
+    const id = newId();
+    await putClip(id, blob);
+    state.students.push({ id, name, url: URL.createObjectURL(blob), mark, pred, score: "" });
+    applyScores(); renderList(); renderChecks(); updateRecBtn(); saveMeta();
+  }
+  async function addFiles(files) {
+    const vids = [...files].filter(f => f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name));
+    vids.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    for (const f of vids) await addStudent(f, f.name);
+  }
+  function renderList() {
+    const list = $("list");
+    if (!state.students.length) { list.innerHTML = '<div class="empty">ما فيه طلاب للحين. شغّل الكاميرا وصوّر أول طالب.</div>'; return; }
+    list.innerHTML = "";
+    state.students.forEach((s, i) => {
+      const card = document.createElement("div"); card.className = "card";
+      card.innerHTML = `
+        <video src="${s.url}" controls playsinline preload="metadata"></video>
+        <div class="body">
+          <div class="top">
+            <div><div class="who">الطالب ${arNum(i + 1)}</div><div class="file"></div></div>
+            <div class="row" style="gap:6px">
+              <button type="button" class="icon" data-a="up" aria-label="قدّم الطالب" ${i === 0 ? "disabled" : ""}>↑</button>
+              <button type="button" class="icon" data-a="down" aria-label="أخّر الطالب" ${i === state.students.length - 1 ? "disabled" : ""}>↓</button>
+              <button type="button" class="icon" data-a="del" aria-label="احذف الطالب">×</button>
+            </div>
+          </div>
+          <div class="nums">
+            <label class="f">التوقع<input type="text" inputmode="decimal" data-k="pred" placeholder="مثلاً 90"></label>
+            <label class="f">الدرجة<input type="text" inputmode="decimal" data-k="score" placeholder="بعد الامتحان"></label>
+          </div>
+          <div class="row" style="gap:6px">
+            <span class="chip" data-r="mark"></span>
+            <button type="button" class="icon" data-a="earlier" aria-label="خلّ التوقع يطلع أبكر">−</button>
+            <button type="button" class="icon" data-a="later" aria-label="خلّ التوقع يطلع أبطأ">+</button>
+          </div>
+          <div class="row">
+            <button type="button" class="mark" data-a="mark">هنا قال توقعه</button>
+            <button type="button" data-a="preview">معاينة</button>
+          </div>
+          <div class="row" data-r="delask" hidden><span class="hint">تحذف الطالب ${arNum(i + 1)}؟</span><button type="button" data-a="delyes">احذف</button><button type="button" data-a="delno">لا</button></div>
+        </div>`;
+      card.querySelector(".file").textContent = s.name;
+      card.querySelector('[data-k="pred"]').value = s.pred;
+      card.querySelector('[data-k="score"]').value = s.score;
+      const v = card.querySelector("video");
+      const chip = card.querySelector('[data-r="mark"]');
+      const paintChip = () => {
+        if (s.mark == null) { chip.className = "chip warn"; chip.textContent = "ما تحددت لحظة التوقع"; }
+        else { chip.className = "chip ok"; chip.textContent = `التوقع يطلع عند ${fmtT(s.mark)}`; }
+      };
+      paintChip();
+      card.addEventListener("input", (e) => { const k = e.target.dataset.k; if (k) { s[k] = e.target.value.trim(); renderChecks(); saveMeta(); } });
+      card.addEventListener("click", (e) => {
+        const a = e.target.closest("[data-a]")?.dataset.a; if (!a || running) return;
+        if (a === "mark") { s.mark = v.currentTime; v.pause(); paintChip(); renderChecks(); saveMeta(); }
+        if (a === "earlier" || a === "later") { s.mark = Math.max(0, (s.mark ?? v.currentTime) + (a === "later" ? 0.25 : -0.25)); v.currentTime = s.mark; paintChip(); renderChecks(); saveMeta(); }
+        if (a === "up" || a === "down") { const j = a === "up" ? i - 1 : i + 1; [state.students[i], state.students[j]] = [state.students[j], state.students[i]]; renderList(); renderChecks(); updateRecBtn(); saveMeta(); }
+        if (a === "del") card.querySelector('[data-r="delask"]').hidden = false;
+        if (a === "delno") card.querySelector('[data-r="delask"]').hidden = true;
+        if (a === "delyes") { URL.revokeObjectURL(s.url); delClip(s.id); state.students.splice(i, 1); renderList(); renderChecks(); updateRecBtn(); saveMeta(); drawIdle(); }
+        if (a === "preview") { v.pause(); runShow({ only: i, record: false }); }
+      });
+      list.appendChild(card);
+    });
+  }
+  function renderChecks() {
+    const ul = $("checks"); ul.innerHTML = "";
+    if (!state.students.length) return;
+    const miss = (k) => state.students.map((s, i) => (k === "mark" ? s.mark == null : !s[k]) ? arNum(i + 1) : null).filter(Boolean);
+    const items = [["mark", "لحظة التوقع ناقصة عند الطالب"], ["pred", "رقم التوقع ناقص عند الطالب"], ["score", "الدرجة ناقصة عند الطالب"]];
+    let allOk = true;
+    for (const [k, msg] of items) {
+      const m = miss(k);
+      if (m.length) { allOk = false; const li = document.createElement("li"); li.className = "bad"; li.textContent = `${msg} ${m.join("، ")}`; ul.appendChild(li); }
+    }
+    if (allOk) { const li = document.createElement("li"); li.textContent = `${arNum(state.students.length)} طلاب جاهزين للتصدير.`; ul.appendChild(li); }
+  }
+  $("clips").addEventListener("change", async (e) => { await addFiles(e.target.files); e.target.value = ""; drawIdle(); });
+
+  $("wipe").addEventListener("click", () => { $("wipeAsk").hidden = false; });
+  $("wipeNo").addEventListener("click", () => { $("wipeAsk").hidden = true; });
+  $("wipeYes").addEventListener("click", async () => {
+    for (const s of state.students) { URL.revokeObjectURL(s.url); await delClip(s.id); }
+    state.students = []; state.scoresByNo = {}; $("wipeAsk").hidden = true;
+    renderList(); renderChecks(); updateRecBtn(); saveMeta(); drawIdle(); setStatus("انمسح كل الطلاب.");
+  });
+
+  // ---------- camera + speech ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) $("srWarn").hidden = false;
+  let camStream = null, facing = "environment", camRec = null, recChunks = [], recT0 = 0, recTimer = 0;
+  let sr = null, srWanted = false, heard = { num: null, at: null, finalAt: null }, autoStopT = 0;
+
+  function updateRecBtn() {
+    const b = $("recBtn");
+    if (camRec) { b.textContent = "وقّف التصوير"; return; }
+    b.textContent = `ابدأ تصوير الطالب ${arNum(state.students.length + 1)}`;
+  }
+  async function startCam() {
+    try {
+      camStream?.getTracks().forEach(t => t.stop());
+      camStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1080 }, height: { ideal: 1920 }, aspectRatio: { ideal: 9 / 16 } },
+        audio: { echoCancellation: true, noiseSuppression: true },
+      });
+      const live = $("live"); live.srcObject = camStream; live.style.transform = facing === "user" ? "scaleX(-1)" : "";
+      await live.play().catch(() => {});
+      $("camOff").hidden = true; $("recBtn").hidden = false; $("flip").hidden = false; $("camOn").hidden = true;
+      updateRecBtn();
+    } catch (e) {
+      $("camOff").textContent = "ما قدرت أشغّل الكاميرا. اسمح للموقع يستخدم الكاميرا والمايك من إعدادات المتصفح.";
+    }
+  }
+  $("camOn").addEventListener("click", startCam);
+  $("flip").addEventListener("click", () => { if (camRec) return; facing = facing === "user" ? "environment" : "user"; startCam(); });
+
+  function startSR() {
+    if (!SR) return;
+    srWanted = true;
+    sr = new SR(); sr.lang = "ar-SA"; sr.continuous = true; sr.interimResults = true; sr.maxAlternatives = 3;
+    sr.onresult = (ev) => {
+      let text = "";
+      for (let i = 0; i < ev.results.length; i++) text += " " + ev.results[i][0].transcript;
+      $("heardTxt").textContent = text.trim() || "—";
+      let n = spokenNumber(text);
+      if (n == null) { // try the other alternatives of the latest result
+        const last = ev.results[ev.results.length - 1];
+        for (let k = 1; k < last.length && n == null; k++) n = spokenNumber(last[k].transcript);
+      }
+      if (n != null) {
+        const t = (performance.now() - recT0) / 1000;
+        if (n !== heard.num) { heard.num = n; heard.at = Math.max(0, t - 0.3); }
+        $("heardNum").textContent = n;
+        const last = ev.results[ev.results.length - 1];
+        if (last.isFinal && $("autoStop").checked) {
+          clearTimeout(autoStopT);
+          autoStopT = setTimeout(() => { if (camRec) stopRec(); }, AUTO_STOP_AFTER * 1000);
+        }
+      }
+    };
+    sr.onend = () => { if (srWanted) { try { sr.start(); } catch (e) {} } };
+    sr.onerror = (e) => { if (e.error === "not-allowed" || e.error === "service-not-allowed") { srWanted = false; $("srWarn").hidden = false; } };
+    try { sr.start(); } catch (e) {}
+  }
+  function stopSR() { srWanted = false; try { sr?.stop(); } catch (e) {} sr = null; }
+
+  function startRec() {
+    if (!camStream) return;
+    const types = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+    const mime = types.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+    if (!mime) { setStatus("المتصفح هذا ما يقدر يسجّل فيديو. جرّب Chrome أو Safari بآخر تحديث.", true); return; }
+    recChunks = []; heard = { num: null, at: null };
+    $("heardTxt").textContent = "…"; $("heardNum").textContent = "—";
+    camRec = new MediaRecorder(camStream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+    camRec.ondataavailable = (e) => e.data.size && recChunks.push(e.data);
+    camRec.onstop = async () => {
+      const blob = new Blob(recChunks, { type: camRec.mimeType || mime });
+      const ext = mime.includes("mp4") ? "mp4" : "webm";
+      const n = state.students.length + 1;
+      const h = heard; camRec = null; updateRecBtn();
+      await addStudent(blob, `تصوير الطالب ${n}.${ext}`, h.at, h.num || "");
+      setStatus(h.num ? `انحفظ الطالب ${arNum(n)}، توقعه ${h.num}.` : `انحفظ الطالب ${arNum(n)}. ما فهمت الرقم، اكتبه بيدك وحدّد اللحظة.`, !h.num);
+    };
+    camRec.start(500); recT0 = performance.now(); startSR();
+    $("recDot").hidden = false; updateRecBtn();
+    recTimer = setInterval(() => { $("recDot").textContent = "● " + fmtT((performance.now() - recT0) / 1000).replace(/\.\d$/, ""); }, 250);
+  }
+  function stopRec() {
+    clearTimeout(autoStopT); clearInterval(recTimer); stopSR();
+    $("recDot").hidden = true;
+    if (camRec && camRec.state !== "inactive") camRec.stop();
+  }
+  $("recBtn").addEventListener("click", () => { if (running) return; camRec ? stopRec() : startRec(); });
+
+  // ---------- grades sheet ----------
+  $("sheet").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    const msg = $("sheetMsg"); msg.className = "status";
+    try {
+      let rows;
+      if (/\.csv$/i.test(f.name)) rows = (await f.text()).split(/\r?\n/).map(l => l.split(/[,;\t]/));
+      else {
+        if (!window.XLSX) throw new Error("noxlsx");
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+        rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false });
+      }
+      const numRows = rows.map(r => (r || []).map(c => numOf(c)).filter(n => !isNaN(n))).filter(r => r.length);
+      if (!numRows.length) throw new Error("empty");
+      const paired = numRows.filter(r => r.length >= 2).length >= numRows.length / 2;
+      const map = {};
+      numRows.forEach((r, i) => { if (paired && r.length >= 2) map[Math.round(r[0])] = r[1]; else if (!paired) map[i + 1] = r[0]; });
+      state.scoresByNo = map;
+      state.students.forEach((s, i) => { if (map[i + 1] != null) s.score = String(map[i + 1]); });
+      renderList(); renderChecks(); saveMeta();
+      const n = Object.keys(map).length;
+      msg.textContent = `قريت ${arNum(n)} درجات ${paired ? "حسب رقم الطالب" : "بالترتيب"}.`;
+    } catch (err) {
+      msg.className = "status err";
+      msg.textContent = err.message === "noxlsx" ? "ما قدرت أقرأ ملف الإكسل. احفظه بصيغة CSV وارفعه مرة ثانية." : "ما لقيت أرقام في الملف. تأكد إن فيه عمود لرقم الطالب وعمود للدرجة.";
+    }
+  });
+
+  // ---------- drawing ----------
+  function cover(src, sw, sh, zoom = 1) {
+    if (!sw || !sh) return;
+    const sc = Math.max(W / sw, H / sh) * zoom, w = sw * sc, h = sh * sc;
+    ctx.drawImage(src, (W - w) / 2, (H - h) / 2, w, h);
+  }
+  function outlined(text, x, y, size, fill, dir = "rtl") {
+    ctx.save();
+    ctx.font = `800 ${size}px ${FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = dir;
+    ctx.lineJoin = "round"; ctx.lineWidth = size * 0.17; ctx.strokeStyle = INK;
+    ctx.shadowColor = "rgba(20,15,50,.35)"; ctx.shadowBlur = size * 0.12; ctx.shadowOffsetY = size * 0.04;
+    ctx.strokeText(text, x, y); ctx.shadowColor = "transparent";
+    ctx.fillStyle = fill; ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+  const easeBack = (t) => { const c = 1.9; t = Math.min(1, Math.max(0, t)); return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+  function popped(text, x, y, size, fill, since) {
+    const t = (performance.now() - since) / 320;
+    const s = 0.2 + 0.8 * easeBack(t);
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.globalAlpha = Math.min(1, t * 2.5);
+    outlined(text, 0, 0, size, fill, "ltr"); ctx.restore();
+  }
+  const LBL_Y = H * 0.155, NUM_Y = H * 0.225, PRED_X = W * 0.70, SCORE_X = W * 0.31;
+  function drawOverlay(sc) {
+    outlined("التوقع:", PRED_X, LBL_Y, 104, SAND);
+    outlined("الدرجة:", SCORE_X, LBL_Y, 104, SAND);
+    if (sc.predAt) popped(toLatin(sc.pred), PRED_X, NUM_Y, 136, WHITE, sc.predAt);
+    if (sc.scoreAt) {
+      let fill = WHITE;
+      if ($("colorize").checked) { const p = numOf(sc.pred), g = numOf(sc.score); if (!isNaN(p) && !isNaN(g)) fill = g >= p ? GOOD : LOW; }
+      popped(toLatin(sc.score), SCORE_X, NUM_Y, 136, fill, sc.scoreAt);
+    }
+  }
+  function drawTitle(text, since) {
+    const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+    const size = lines.some(l => l.length > 18) ? 92 : 108, gap = size * 1.22;
+    const t = Math.min(1, (performance.now() - since) / 500);
+    const y0 = H * 0.47 - (gap * (lines.length - 1)) / 2;
+    ctx.save(); ctx.globalAlpha = t;
+    lines.forEach((l, i) => outlined(l, W / 2, y0 + i * gap + (1 - t) * 30, size, SAND));
+    ctx.restore();
+  }
+  let scene = { mode: "idle" };
+  function draw() {
+    ctx.fillStyle = "#0d0c1a"; ctx.fillRect(0, 0, W, H);
+    const ready = player.readyState >= 2 && player.videoWidth;
+    if (scene.mode === "intro") {
+      if (ready) { sctx.drawImage(player, 0, 0, small.width, small.height); ctx.imageSmoothingQuality = "high"; cover(small, small.width, small.height, 1.08); }
+      ctx.fillStyle = "rgba(20,16,50,.18)"; ctx.fillRect(0, 0, W, H);
+      drawTitle($("title").value, scene.since);
+    } else if (scene.mode === "clip") {
+      const zoom = scene.frozenAt ? 1 + Math.min(0.05, (performance.now() - scene.frozenAt) / 60000) : 1;
+      if (ready) cover(player, player.videoWidth, player.videoHeight, zoom);
+      drawOverlay(scene);
+      if (scene.frozenAt) { const f = 1 - (performance.now() - scene.frozenAt) / 260; if (f > 0) { ctx.fillStyle = `rgba(255,255,255,${0.55 * f})`; ctx.fillRect(0, 0, W, H); } }
+      const fin = 1 - (performance.now() - scene.since) / 260;
+      if (fin > 0) { ctx.fillStyle = `rgba(13,12,26,${fin})`; ctx.fillRect(0, 0, W, H); }
+    }
+    if (scene.fadeOut) { const f = Math.min(1, (performance.now() - scene.fadeOut) / 260); ctx.fillStyle = `rgba(13,12,26,${f})`; ctx.fillRect(0, 0, W, H); }
+  }
+  function drawIdle() {
+    if (running) return;
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#cfd3dc"); g.addColorStop(1, "#8d93a3");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(255,255,255,.55)";
+    ctx.beginPath(); ctx.arc(W / 2, H * 0.5, 170, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(W / 2, H * 0.92, 380, 330, 0, Math.PI, 0); ctx.fill();
+    outlined("التوقع:", PRED_X, LBL_Y, 104, SAND);
+    outlined("الدرجة:", SCORE_X, LBL_Y, 104, SAND);
+    outlined("90", PRED_X, NUM_Y, 136, WHITE, "ltr");
+    outlined("95", SCORE_X, NUM_Y, 136, WHITE, "ltr");
+    ctx.save(); ctx.font = `600 44px ${FONT}`; ctx.fillStyle = "rgba(30,25,70,.7)"; ctx.textAlign = "center"; ctx.direction = "rtl";
+    ctx.fillText("مثال على الإطار", W / 2, H * 0.32); ctx.restore();
+  }
+
+  // ---------- audio ----------
+  let ac = null, dest = null;
+  function ensureAudio() {
+    if (ac) { ac.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    ac = new AC(); dest = ac.createMediaStreamDestination();
+    const src = ac.createMediaElementSource(player);
+    src.connect(dest); src.connect(ac.destination);
+  }
+  function tone(freqs, dur, type = "sine", vol = 0.35) {
+    if (!ac || !$("sfx").checked) return;
+    const t0 = ac.currentTime;
+    freqs.forEach(([f, at]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t0 + at);
+      g.gain.setValueAtTime(0.0001, t0 + at);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + at + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+      o.connect(g); g.connect(dest); g.connect(ac.destination);
+      o.start(t0 + at); o.stop(t0 + at + dur + 0.05);
+    });
+  }
+  const sfxPred = () => tone([[520, 0], [780, 0.07]], 0.22, "triangle", 0.4);
+  const sfxFreeze = () => tone([[180, 0]], 0.18, "square", 0.12);
+  const sfxScore = () => tone([[660, 0], [880, 0.1], [1320, 0.2]], 0.5, "sine", 0.35);
+
+  // ---------- show engine ----------
+  const frame = () => new Promise(r => requestAnimationFrame(r));
+  async function until(fn) { while (!stopReq && !fn()) { draw(); await frame(); } }
+  async function hold(sec) { const t = performance.now(); await until(() => performance.now() - t >= sec * 1000); }
+  function load(url) {
+    return new Promise((res, rej) => {
+      const ok = () => { cleanup(); res(); }, bad = () => { cleanup(); rej(new Error("load")); };
+      const cleanup = () => { player.removeEventListener("loadeddata", ok); player.removeEventListener("error", bad); };
+      player.addEventListener("loadeddata", ok); player.addEventListener("error", bad);
+      player.src = url; player.load();
+    });
+  }
+  function seek0() {
+    return new Promise(res => { if (player.currentTime === 0) return res(); player.addEventListener("seeked", res, { once: true }); player.currentTime = 0; });
+  }
+  function setStatus(t, err) { const el = $("status"); el.textContent = t; el.className = "status" + (err ? " err" : ""); }
+  function setBusy(b) {
+    running = b; $("play").disabled = b; $("export").disabled = b; $("stop").hidden = !b; $("recBtn").disabled = b;
+    document.querySelectorAll("#list button, #clips, #sheet").forEach(x => x.disabled = b);
+  }
+
+  async function runShow({ only = null, record = false } = {}) {
+    if (running || camRec) return;
+    const order = only == null ? state.students.map((s, i) => i) : [only];
+    if (!order.length) { setStatus("صوّر الطلاب أول.", true); return; }
+    await document.fonts.load(`800 100px "Baloo Bhaijaan 2"`).catch(() => {});
+    ensureAudio();
+    setBusy(true); stopReq = false; $("result").hidden = true;
+    let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch (e) {}
+
+    let rec = null, chunks = [];
+    if (record) {
+      const types = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+      const mime = window.MediaRecorder ? types.find(t => MediaRecorder.isTypeSupported(t)) : null;
+      if (!mime || !cv.captureStream) { setStatus("المتصفح هذا ما يدعم تصدير الفيديو. جرّب Chrome أو Safari بآخر تحديث.", true); setBusy(false); return; }
+      lastExt = mime.includes("mp4") ? "mp4" : "webm";
+      const stream = new MediaStream([...cv.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+      rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    }
+
+    const total = order.length; let done = 0;
+    const prog = (p) => $("prog").style.width = `${Math.round(p * 100)}%`;
+    prog(0);
+    try {
+      await load(state.students[order[0]].url); await seek0();
+      if (rec) rec.start(1000);
+      if (only == null && $("intro").checked) {
+        scene = { mode: "intro", since: performance.now() };
+        setStatus("المقدمة…");
+        await hold(INTRO);
+      }
+      for (const i of order) {
+        if (stopReq) break;
+        const s = state.students[i];
+        setStatus(`${record ? "يصدّر" : "يعرض"} الطالب ${arNum(i + 1)} من ${arNum(state.students.length)}…`);
+        if (player.src !== s.url) await load(s.url);
+        await seek0();
+        const dur = isFinite(player.duration) ? player.duration : 9999;
+        const mark = s.mark != null ? Math.min(s.mark, Math.max(0, dur - 0.05)) : Math.max(0, dur - FREEZE_AFTER - 0.1);
+        scene = { mode: "clip", since: performance.now(), pred: s.pred || "؟", score: s.score || "؟" };
+        await player.play();
+        await until(() => player.currentTime >= mark || player.ended);
+        scene.predAt = performance.now(); sfxPred();
+        await until(() => player.currentTime >= mark + FREEZE_AFTER || player.ended);
+        player.pause(); scene.frozenAt = performance.now(); sfxFreeze();
+        await hold(SCORE_AFTER);
+        scene.scoreAt = performance.now(); sfxScore();
+        await hold(HOLD);
+        scene.fadeOut = performance.now(); await hold(0.26);
+        done++; prog(done / total);
+      }
+    } catch (e) {
+      setStatus("صار خطأ في تشغيل أحد المقاطع. تأكد إن الملف فيديو سليم.", true);
+      stopReq = true;
+    }
+    player.pause();
+    if (rec) { const stopped = new Promise(r => rec.onstop = r); rec.stop(); await stopped; }
+    try { await wake?.release(); } catch (e) {}
+    const wasStopped = stopReq, hadErr = $("status").classList.contains("err");
+    setBusy(false); scene = { mode: "idle" };
+    if (rec && !wasStopped) {
+      lastBlob = new Blob(chunks, { type: rec.mimeType || (lastExt === "mp4" ? "video/mp4" : "video/webm") });
+      const out = $("out"); if (out.src) URL.revokeObjectURL(out.src);
+      const url = URL.createObjectURL(lastBlob);
+      out.src = url;
+      const dl = $("dl"); dl.href = url; dl.download = `توقعات-الطلاب.${lastExt}`;
+      const file = new File([lastBlob], `توقعات-الطلاب.${lastExt}`, { type: lastBlob.type });
+      $("share").hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
+      $("result").hidden = false;
+      setStatus(`الفيديو جاهز (${(lastBlob.size / 1048576).toFixed(1)} ميجا). شيّك عليه واحفظه.`);
+    } else if (wasStopped && !hadErr) setStatus("وقف العرض.");
+    else if (!rec) setStatus("خلصت المعاينة. إذا كل شي تمام اضغط «تصدير الفيديو».");
+    if (!rec || wasStopped) drawIdle();
+  }
+
+  $("play").addEventListener("click", () => runShow({ record: false }));
+  $("export").addEventListener("click", () => {
+    if (!state.students.length) { setStatus("صوّر الطلاب أول.", true); return; }
+    runShow({ record: true });
+  });
+  $("stop").addEventListener("click", () => { stopReq = true; });
+  $("share").addEventListener("click", async () => {
+    if (!lastBlob) return;
+    const file = new File([lastBlob], `توقعات-الطلاب.${lastExt}`, { type: lastBlob.type });
+    try { await navigator.share({ files: [file], title: "توقعات الطلاب" }); } catch (e) {}
+  });
+
+  document.fonts.load(`800 100px "Baloo Bhaijaan 2"`).then(drawIdle, drawIdle);
+  drawIdle();
+  restore();
+})();
+</script>
+</body>
+</html>
